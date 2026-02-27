@@ -1,0 +1,45 @@
+{
+  "name": "server",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "scripts": {
+    "preinstall": "node check-versions.js",
+    "predev": "node check-versions.js",
+    "prebuild": "node check-versions.js",
+    "prestart": "node check-versions.js",
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "check": "npx ts-node check-setup.ts",
+    "check-versions": "node check-versions.js",
+    "setup": "npm install && npx ts-node check-setup.ts"
+  },
+  "dependencies": {
+    "@types/mongodb": "^4.0.6",
+    "axios": "latest",
+    "cookie-parser": "latest",
+    "cors": "latest",
+    "dotenv": "latest",
+    "express": "latest",
+    "firebase": "^12.8.0",
+    "firebase-admin": "latest",
+    "jsonwebtoken": "latest",
+    "mongodb": "^7.0.0",
+    "nodemailer": "^7.0.12"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "latest",
+    "@types/express": "latest",
+    "@types/jsonwebtoken": "latest",
+    "@types/node": "latest",
+    "@types/nodemailer": "^7.0.5",
+    "ts-node": "latest",
+    "ts-node-dev": "latest",
+    "typescript": "latest"
+  }
+}
