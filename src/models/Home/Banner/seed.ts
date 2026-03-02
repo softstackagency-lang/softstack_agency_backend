@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import { connectDb, closeDb } from '../../../config/db';
+import { connectDb, closeDb } from '../../../db';
 
 const seedBanner = async () => {
     try {

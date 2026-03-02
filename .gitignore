@@ -7,3 +7,4 @@ src/config/firebase-service-account.json
 .DS_Store
 .vercel
 *.log
+.env*.local
