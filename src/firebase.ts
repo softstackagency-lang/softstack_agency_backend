@@ -20,10 +20,18 @@ if (!admin.apps.length) {
     if (process.env.FIREBASE_SERVICE_ACCOUNT) {
       // Production: Use environment variable
       try {
-        serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
+        const rawContent = process.env.FIREBASE_SERVICE_ACCOUNT;
+        serviceAccount = JSON.parse(rawContent);
+
+        // Fix for common Vercel/environment variable issue: \n being escaped as \\n
+        if (serviceAccount.private_key && typeof serviceAccount.private_key === 'string') {
+          serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+        }
       } catch (error) {
+        console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT:', error);
         throw new FirebaseValidationError(
-          'Failed to parse FIREBASE_SERVICE_ACCOUNT environment variable. Must be valid JSON.'
+          'Failed to parse FIREBASE_SERVICE_ACCOUNT environment variable. Must be valid JSON. ' +
+          'Check for hidden characters or formatting issues.'
         )
       }
     } else {
@@ -33,10 +41,7 @@ if (!admin.apps.length) {
       if (!fs.existsSync(serviceAccountPath)) {
         throw new FirebaseValidationError(
           `Firebase service account file not found at: ${serviceAccountPath}\n` +
-          'Please download the service account JSON from Firebase Console:\n' +
-          '1. Go to Firebase Console > Project Settings > Service Accounts\n' +
-          '2. Click "Generate New Private Key"\n' +
-          '3. Save the file as src/config/firebase-service-account.json'
+          'Please download the service account JSON from Firebase Console.'
         )
       }
 
@@ -60,13 +65,12 @@ if (!admin.apps.length) {
 
     console.log(`✓ Firebase Admin initialized successfully for project: ${serviceAccount.project_id}`)
   } catch (error) {
-    if (error instanceof FirebaseValidationError) {
-      console.error('\n❌ Firebase Configuration Error:')
-      console.error(error.message)
-      console.error('\nThe application cannot start without valid Firebase credentials.')
-      throw error
+    console.error('❌ Firebase Initialization Failed:', error instanceof Error ? error.message : 'Unknown error');
+    // In serverless, we don't want to crash the whole node process on import
+    // But we should allow the error to propagates if it's during actual app startup
+    if (process.env.NODE_ENV !== 'production') {
+      throw error;
     }
-    throw error
   }
 }
 
@@ -93,7 +97,7 @@ export async function verifyIdTokenMiddleware(req: Request, res: Response, next:
   try {
     const decoded = await auth.verifyIdToken(idToken, true)
     console.log('✅ Token verified successfully:', { uid: decoded.uid, email: decoded.email });
-    ;(req as any).firebaseUser = decoded
+    ; (req as any).firebaseUser = decoded
     return next()
   } catch (err: any) {
     console.error('❌ Token verification failed:', err.code, err.message);
@@ -110,10 +114,10 @@ export function cookieAuthMiddleware(req: Request, _res: Response, next: NextFun
   if (!token) return next()
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as any
-    ;(req as any).sessionUser = { uid: decoded.uid }
+      ; (req as any).sessionUser = { uid: decoded.uid }
     return next()
   } catch (err) {
-    ;(req as any).sessionUser = undefined
+    ; (req as any).sessionUser = undefined
     return next()
   }
 }

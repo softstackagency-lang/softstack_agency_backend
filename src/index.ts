@@ -6,14 +6,17 @@ dotenv.config()
 // Validate environment variables early
 import { validateEnvironmentVariables } from './utils/validateFirebase'
 
+let envError: string | null = null;
 try {
   validateEnvironmentVariables()
 } catch (error) {
+  envError = error instanceof Error ? error.message : 'Unknown environment configuration error';
   console.error('\n❌ Environment Configuration Error:')
-  console.error(error instanceof Error ? error.message : 'Unknown error')
-  console.error('\nPlease check your .env file and ensure all required variables are set.')
+  console.error(envError)
+  console.error('\nPlease check your Vercel/Environment variables and ensure all required variables are set.')
   console.error('See .env.example for reference.\n')
-  process.exit(1)
+  // Do NOT process.exit(1) in serverless environments as it crashes the instance immediately
+  // We will handle this error during request time or in the initialization block
 }
 
 import express, { Request, Response } from 'express'
@@ -85,9 +88,23 @@ const initializeDatabases = async () => {
 // For serverless (Vercel), initialize on first request
 let dbInitialized = false
 app.use(async (req, res, next) => {
+  // If there was an environment error, report it
+  if (envError) {
+    return res.status(500).json({
+      error: 'Environment Configuration Error',
+      message: envError,
+      hint: 'Check Vercel environment variables'
+    });
+  }
+
   if (!dbInitialized) {
-    await initializeDatabases()
-    dbInitialized = true
+    try {
+      await initializeDatabases()
+      dbInitialized = true
+    } catch (err) {
+      console.error('Database initialization failed:', err);
+      // We don't return here so health checks might still work
+    }
   }
   next()
 })
