@@ -74,7 +74,7 @@ export function validateFirebaseServiceAccount(serviceAccount: any): void {
 
   // Validate client_email format
   if (!serviceAccount.client_email.includes('@') ||
-      !serviceAccount.client_email.includes('.iam.gserviceaccount.com')) {
+    !serviceAccount.client_email.includes('.iam.gserviceaccount.com')) {
     throw new FirebaseValidationError(
       `Invalid client_email format: ${serviceAccount.client_email}`
     );
@@ -82,7 +82,7 @@ export function validateFirebaseServiceAccount(serviceAccount: any): void {
 
   // Validate private_key format
   if (!serviceAccount.private_key.includes('BEGIN PRIVATE KEY') ||
-      !serviceAccount.private_key.includes('END PRIVATE KEY')) {
+    !serviceAccount.private_key.includes('END PRIVATE KEY')) {
     throw new FirebaseValidationError(
       'Invalid private_key format. Must be a valid PEM-encoded private key.'
     );
@@ -122,6 +122,11 @@ export function validateEnvironmentVariables(): void {
     'ADMIN_SECRET',
   ];
 
+  // Only require the environment variable in production/Vercel
+  if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
+    required.push('FIREBASE_SERVICE_ACCOUNT');
+  }
+
   const missing = required.filter(key => !process.env[key]);
 
   if (missing.length > 0) {
@@ -138,17 +143,17 @@ export function validateEnvironmentVariables(): void {
 
   // Validate JWT_SECRET is not default
   if (process.env.JWT_SECRET && (
-      process.env.JWT_SECRET === 'dev-secret' ||
-      process.env.JWT_SECRET === 'super-secret-jwt' ||
-      process.env.JWT_SECRET.includes('your-')
+    process.env.JWT_SECRET === 'dev-secret' ||
+    process.env.JWT_SECRET === 'super-secret-jwt' ||
+    process.env.JWT_SECRET.includes('your-')
   )) {
     console.warn('⚠️  WARNING: Using default or example JWT_SECRET. Change this in production!');
   }
 
   // Validate ADMIN_SECRET is not default
   if (process.env.ADMIN_SECRET && (
-      process.env.ADMIN_SECRET === 'super-admin-secret' ||
-      process.env.ADMIN_SECRET.includes('your-')
+    process.env.ADMIN_SECRET === 'super-admin-secret' ||
+    process.env.ADMIN_SECRET.includes('your-')
   )) {
     console.warn('⚠️  WARNING: Using default or example ADMIN_SECRET. Change this in production!');
   }

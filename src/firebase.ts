@@ -68,14 +68,40 @@ if (!admin.apps.length) {
     console.error('❌ Firebase Initialization Failed:', error instanceof Error ? error.message : 'Unknown error');
     // In serverless, we don't want to crash the whole node process on import
     // But we should allow the error to propagates if it's during actual app startup
-    if (process.env.NODE_ENV !== 'production') {
+    if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
       throw error;
     }
   }
 }
 
-export const auth = admin.auth()
-export const firestore = admin.firestore()
+/**
+ * Lazy-loaded Proxy for Firebase Auth.
+ * This prevents the application from crashing during module import if Firebase is not yet initialized.
+ */
+export const auth = new Proxy({} as admin.auth.Auth, {
+  get(target, prop) {
+    if (!admin.apps.length) {
+      throw new Error('Firebase Admin not initialized. Check FIREBASE_SERVICE_ACCOUNT environment variable.')
+    }
+    const service = admin.auth()
+    const value = (service as any)[prop]
+    return typeof value === 'function' ? value.bind(service) : value
+  }
+})
+
+/**
+ * Lazy-loaded Proxy for Firebase Firestore.
+ */
+export const firestore = new Proxy({} as admin.firestore.Firestore, {
+  get(target, prop) {
+    if (!admin.apps.length) {
+      throw new Error('Firebase Admin not initialized. Check FIREBASE_SERVICE_ACCOUNT environment variable.')
+    }
+    const service = admin.firestore()
+    const value = (service as any)[prop]
+    return typeof value === 'function' ? value.bind(service) : value
+  }
+})
 
 export function signSessionToken(uid: string) {
   return jwt.sign({ uid }, JWT_SECRET, { expiresIn: '7d' })
