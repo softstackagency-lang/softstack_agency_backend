@@ -99,6 +99,9 @@ export async function upsertUserProfile(fields: {
   const usersCol = getUsersCollection()
   const now = new Date()
 
+  // Check if user exists
+  const existingUser = await usersCol.findOne({ firebaseUid: fields.firebaseUid })
+
   const updateDoc: Partial<IUser> = {
     firebaseUid: fields.firebaseUid,
     email: fields.email,
@@ -106,8 +109,10 @@ export async function upsertUserProfile(fields: {
     phoneNumber: fields.phoneNumber || '',
     address: fields.address || '',
     photoURL: fields.photoURL || '',
-    role: fields.role || 'user',
-    status: fields.status || 'active',
+    // Only set role if it's explicitly provided OR if user doesn't exist
+    ...(fields.role ? { role: fields.role } : existingUser ? {} : { role: 'user' }),
+    // Only set status if it's explicitly provided OR if user doesn't exist
+    ...(fields.status ? { status: fields.status } : existingUser ? {} : { status: 'active' }),
     termsAccepted: fields.termsAccepted !== undefined ? fields.termsAccepted : false,
     updatedAt: now,
   }
