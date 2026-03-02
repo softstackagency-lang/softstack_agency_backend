@@ -1,15 +1,10 @@
 import { MongoClient, Db, Collection, ObjectId } from 'mongodb'
 
-const MONGODB_URI = process.env.MONGODB_URI || ''
-
-if (!MONGODB_URI) {
-  console.error('MONGODB_URI is not defined in environment variables')
-}
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/agency'
 
 let db: Db | null = null
 let client: MongoClient | null = null
 
-// TypeScript interfaces for collections
 export interface IUser {
   _id?: ObjectId
   firebaseUid: string
@@ -47,31 +42,19 @@ export interface IPasswordResetToken {
   createdAt: Date
 }
 
-// Connection function
 export async function connectDb(): Promise<Db> {
   if (db) return db
 
-  try {
-    client = new MongoClient(MONGODB_URI, {
-      tls: true,
-      tlsAllowInvalidCertificates: false,
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-    })
-    await client.connect()
-    db = client.db()
-    console.log('Connected to MongoDB')
-
-    await createIndexes()
-
-    return db
-  } catch (error) {
-    console.error('MongoDB connection error:', error)
-    throw error
-  }
+  client = new MongoClient(MONGODB_URI, {
+    tls: true,
+    tlsAllowInvalidCertificates: false,
+    serverSelectionTimeoutMS: 5000,
+  })
+  await client.connect()
+  db = client.db()
+  await createIndexes()
+  return db
 }
-
-// Get database instance
 export function getDb(): Db {
   if (!db) {
     throw new Error('Database not initialized. Call connectDb first.')
@@ -79,7 +62,6 @@ export function getDb(): Db {
   return db
 }
 
-// Collection getters
 export function getUsersCollection(): Collection<IUser> {
   return getDb().collection<IUser>('users')
 }
@@ -92,25 +74,17 @@ export function getPasswordResetTokensCollection(): Collection<IPasswordResetTok
   return getDb().collection<IPasswordResetToken>('passwordresettokens')
 }
 
-// Create indexes
 async function createIndexes() {
-  try {
-    const usersCol = getUsersCollection()
-    await usersCol.createIndex({ firebaseUid: 1 }, { unique: true })
-    await usersCol.createIndex({ email: 1 })
+  const usersCol = getUsersCollection()
+  await usersCol.createIndex({ firebaseUid: 1 }, { unique: true })
+  await usersCol.createIndex({ email: 1 })
 
-    const tokensCol = getPasswordResetTokensCollection()
-    await tokensCol.createIndex({ email: 1 })
-    await tokensCol.createIndex({ token: 1 }, { unique: true })
-    await tokensCol.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 })
-
-    console.log('MongoDB indexes created')
-  } catch (error) {
-    console.error('Error creating indexes:', error)
-  }
+  const tokensCol = getPasswordResetTokensCollection()
+  await tokensCol.createIndex({ email: 1 })
+  await tokensCol.createIndex({ token: 1 }, { unique: true })
+  await tokensCol.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 })
 }
 
-// Helper function for upserting user profile
 export async function upsertUserProfile(fields: {
   firebaseUid: string
   email: string
@@ -148,7 +122,6 @@ export async function upsertUserProfile(fields: {
   )
 }
 
-// Legacy exports for backwards compatibility (will be removed)
 export const User = {
   findOne: (query: any) => getUsersCollection().findOne(query),
   find: (query: any) => getUsersCollection().find(query),
@@ -173,12 +146,10 @@ export const PasswordResetToken = {
   deleteOne: (filter: any) => getPasswordResetTokensCollection().deleteOne(filter),
 }
 
-// Close connection
 export async function closeDb(): Promise<void> {
   if (client) {
     await client.close()
     db = null
     client = null
-    console.log('MongoDB connection closed')
   }
 }

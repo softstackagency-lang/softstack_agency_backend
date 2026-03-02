@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { getDB } from "../../config/db";
+import { getDb } from "../../db";
 import { ObjectId } from "mongodb";
 
 // Create a new product
@@ -7,7 +7,7 @@ import { ObjectId } from "mongodb";
 
 export const createProduct = async (req: Request, res: Response) => {
   try {
-    const db = getDB();
+    const db = getDb();
     const { userId } = req.params; // Get userId from URL params
 
     const {
@@ -83,7 +83,7 @@ export const createProduct = async (req: Request, res: Response) => {
 // Get all products
 export const getAllProducts = async (_req: Request, res: Response) => {
   try {
-    const db = getDB();
+    const db = getDb();
 
     const products = await db
       .collection("products")
@@ -130,7 +130,7 @@ export const updateProduct = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Invalid product ID" });
     }
 
-    const db = getDB();
+    const db = getDb();
 
     const updateData: any = {
       ...req.body,
@@ -171,7 +171,7 @@ export const deleteProduct = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Invalid product ID" });
     }
 
-    const db = getDB();
+    const db = getDb();
 
     const result = await db.collection("products").deleteOne({
       _id: new ObjectId(id as string),

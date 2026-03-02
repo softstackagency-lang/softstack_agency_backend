@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import { ObjectId } from "mongodb";
-import { connectDB } from "../../config/db";
+import { connectDb } from "../../db";
 import { PricingCategory, PricingPlan, PricingFilters } from "./pricing.model";
 
 // Helper function to ensure id is a string
@@ -30,7 +30,7 @@ export const createPricingCategory = async (req: Request, res: Response) => {
       categoryData.plans = [];
     }
 
-    const db = await connectDB();
+    const db = await connectDb();
 
     // Check if category with same id already exists
     const existingCategory = await db.collection("pricingCategories").findOne({ id: categoryData.id });
@@ -69,7 +69,7 @@ export const getAllPricingCategories = async (req: Request, res: Response) => {
     const filters: any = {};
     if (isActive !== undefined) filters.isActive = isActive === 'true';
 
-    const db = await connectDB();
+    const db = await connectDb();
 
     const sortOptions: any = {};
     sortOptions[sortBy as string] = sortOrder === 'desc' ? -1 : 1;
@@ -99,7 +99,7 @@ export const getAllPricingCategories = async (req: Request, res: Response) => {
 export const getPricingCategoryById = async (req: Request, res: Response) => {
   try {
     const id = getIdAsString(req.params.id);
-    const db = await connectDB();
+    const db = await connectDb();
 
     // Try to find by custom id first, then by _id
     let category = await db.collection("pricingCategories").findOne({ id });
@@ -140,7 +140,7 @@ export const updatePricingCategory = async (req: Request, res: Response) => {
     // Remove _id from update data if present
     delete updateData._id;
 
-    const db = await connectDB();
+    const db = await connectDb();
 
     // Try to update by custom id first, then by _id
     let result = await db.collection("pricingCategories").updateOne(
@@ -179,7 +179,7 @@ export const updatePricingCategory = async (req: Request, res: Response) => {
 export const deletePricingCategory = async (req: Request, res: Response) => {
   try {
     const id = getIdAsString(req.params.id);
-    const db = await connectDB();
+    const db = await connectDb();
 
     // Try to delete by custom id first, then by _id
     let result = await db.collection("pricingCategories").deleteOne({ id });
@@ -223,7 +223,7 @@ export const addPlanToCategory = async (req: Request, res: Response) => {
         .replace(/[^a-z0-9\-]/g, ''); // Remove special characters except hyphens
     }
 
-    const db = await connectDB();
+    const db = await connectDb();
 
     // Find the category
     let category = await db.collection("pricingCategories").findOne({ id: categoryId });
@@ -285,7 +285,7 @@ export const updatePlanInCategory = async (req: Request, res: Response) => {
     const planId = getIdAsString(req.params.planId);
     const updateData = req.body;
 
-    const db = await connectDB();
+    const db = await connectDb();
 
     // Find the category
     let category = await db.collection("pricingCategories").findOne({ id: categoryId });
@@ -341,7 +341,7 @@ export const removePlanFromCategory = async (req: Request, res: Response) => {
     const categoryId = getIdAsString(req.params.categoryId);
     const planId = getIdAsString(req.params.planId);
 
-    const db = await connectDB();
+    const db = await connectDb();
 
     // Find the category
     let category = await db.collection("pricingCategories").findOne({ id: categoryId });

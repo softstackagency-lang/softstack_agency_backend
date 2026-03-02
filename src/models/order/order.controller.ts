@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
-import { getDB } from "../../config/db";
+import { getDb } from "../../db";
 import { ObjectId } from "mongodb";
 import { Order, OrderItem } from "./order.model";
 
 const generateOrderNumber = async (): Promise<string> => {
-    const db = getDB();
+    const db = getDb();
     const year = new Date().getFullYear();
 
     // Find the latest order number for this year
@@ -25,7 +25,7 @@ const generateOrderNumber = async (): Promise<string> => {
 
 export const createOrder = async (req: Request, res: Response) => {
     try {
-        const db = getDB();
+        const db = getDb();
 
         console.log("Order request body:", JSON.stringify(req.body, null, 2));
 
@@ -187,7 +187,7 @@ export const createOrder = async (req: Request, res: Response) => {
 // Get all orders with filtering and pagination (admin only)
 export const getAllOrders = async (req: Request, res: Response) => {
     try {
-        const db = getDB();
+        const db = getDb();
         const {
             orderStatus,
             paymentStatus,
@@ -276,7 +276,7 @@ export const getOrderById = async (req: Request, res: Response) => {
             });
         }
 
-        const db = getDB();
+        const db = getDb();
         const order = await db.collection("orders").findOne({ _id: new ObjectId(id as string) });
 
         if (!order) {
@@ -324,7 +324,7 @@ export const getOrderByOrderNumber = async (req: Request, res: Response) => {
             });
         }
 
-        const db = getDB();
+        const db = getDb();
         const order = await db.collection("orders").findOne({ orderNumber });
 
         if (!order) {
@@ -373,7 +373,7 @@ export const getUserOrders = async (req: Request, res: Response) => {
             });
         }
 
-        const db = getDB();
+        const db = getDb();
         const { orderStatus, paymentStatus, limit, skip } = req.query;
 
         // Build filter for user's orders
@@ -445,7 +445,7 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
             });
         }
 
-        const db = getDB();
+        const db = getDb();
         const existingOrder = await db.collection("orders").findOne({ _id: new ObjectId(id as string) });
 
         if (!existingOrder) {
@@ -518,7 +518,7 @@ export const updatePaymentStatus = async (req: Request, res: Response) => {
             });
         }
 
-        const db = getDB();
+        const db = getDb();
         const existingOrder = await db.collection("orders").findOne({ _id: new ObjectId(id as string) });
 
         if (!existingOrder) {
@@ -580,7 +580,7 @@ export const cancelOrder = async (req: Request, res: Response) => {
             });
         }
 
-        const db = getDB();
+        const db = getDb();
         const existingOrder = await db.collection("orders").findOne({ _id: new ObjectId(id as string) });
 
         if (!existingOrder) {
@@ -678,7 +678,7 @@ export const updateOrder = async (req: Request, res: Response) => {
             });
         }
 
-        const db = getDB();
+        const db = getDb();
         const existingOrder = await db.collection("orders").findOne({ _id: new ObjectId(id as string) });
 
         if (!existingOrder) {
@@ -740,7 +740,7 @@ export const deleteOrder = async (req: Request, res: Response) => {
             });
         }
 
-        const db = getDB();
+        const db = getDb();
         const result = await db.collection("orders").deleteOne({ _id: new ObjectId(id as string) });
 
         if (result.deletedCount === 0) {
@@ -767,7 +767,7 @@ export const deleteOrder = async (req: Request, res: Response) => {
 // Get order statistics for dashboard (admin only)
 export const getOrderStats = async (req: Request, res: Response) => {
     try {
-        const db = getDB();
+        const db = getDb();
 
         // Total orders
         const totalOrders = await db.collection("orders").countDocuments();
@@ -845,7 +845,7 @@ export const getOrderStats = async (req: Request, res: Response) => {
 // Track orders by email (public endpoint)
 export const trackOrdersByEmail = async (req: Request, res: Response) => {
     try {
-        const db = getDB();
+        const db = getDb();
         const { email } = req.params;
 
         // Validate email parameter

@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
-import { getDB } from "../../../config/db";
+import { getDb } from "../../../db";
 import { ObjectId } from "mongodb";
 import { Testimonial } from "./testimonial.model";
 
 // Create a new testimonial
 export const createTestimonial = async (req: Request, res: Response) => {
     try {
-        const db = getDB();
+        const db = getDb();
 
         const {
             name,
@@ -65,7 +65,7 @@ export const createTestimonial = async (req: Request, res: Response) => {
 // Get all testimonials (public endpoint)
 export const getAllTestimonials = async (req: Request, res: Response) => {
     try {
-        const db = getDB();
+        const db = getDb();
         const { isFeatured, rating, limit, skip } = req.query;
 
         // Build filter object
@@ -111,7 +111,7 @@ export const getAllTestimonials = async (req: Request, res: Response) => {
 // Get featured testimonials (public endpoint)
 export const getFeaturedTestimonials = async (req: Request, res: Response) => {
     try {
-        const db = getDB();
+        const db = getDb();
         const { limit } = req.query;
 
         let query = db.collection("testimonials")
@@ -148,7 +148,7 @@ export const getTestimonialById = async (req: Request, res: Response) => {
             });
         }
 
-        const db = getDB();
+        const db = getDb();
 
         const testimonial = await db.collection("testimonials").findOne({ _id: new ObjectId(id as string) });
 
@@ -200,7 +200,7 @@ export const updateTestimonial = async (req: Request, res: Response) => {
             });
         }
 
-        const db = getDB();
+        const db = getDb();
 
         // First check if testimonial exists
         const existingTestimonial = await db.collection("testimonials").findOne({ _id: new ObjectId(id as string) });
@@ -254,7 +254,7 @@ export const deleteTestimonial = async (req: Request, res: Response) => {
             });
         }
 
-        const db = getDB();
+        const db = getDb();
 
         const result = await db.collection("testimonials").deleteOne({ _id: new ObjectId(id as string) });
 

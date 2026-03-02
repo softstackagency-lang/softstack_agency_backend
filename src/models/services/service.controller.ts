@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
-import { getDB } from "../../config/db";
+import { getDb } from "../../db";
 import { ObjectId } from "mongodb";
 import { Service } from "./service.model";
 
 // Create a new service
 export const createService = async (req: Request, res: Response) => {
   try {
-    const db = getDB();
+    const db = getDb();
 
     const {
       title,
@@ -70,7 +70,7 @@ export const createService = async (req: Request, res: Response) => {
 // Get all services
 export const getAllServices = async (req: Request, res: Response) => {
   try {
-    const db = getDB();
+    const db = getDb();
 
     // Query parameters for filtering
     const { category, status, tags, minPrice, maxPrice, limit, skip } = req.query;
@@ -131,7 +131,7 @@ export const getServiceById = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Invalid service ID" });
     }
 
-    const db = getDB();
+    const db = getDb();
 
     const service = await db.collection("services").findOne({ _id: new ObjectId(id as string) });
 
@@ -159,7 +159,7 @@ export const getServicesByCategory = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Category is required" });
     }
 
-    const db = getDB();
+    const db = getDb();
 
     // Build filter
     const filter: any = { category };
@@ -214,7 +214,7 @@ export const updateService = async (req: Request, res: Response) => {
       });
     }
 
-    const db = getDB();
+    const db = getDb();
 
     // First check if service exists
     const existingService = await db.collection("services").findOne({ _id: new ObjectId(id as string) });
@@ -265,7 +265,7 @@ export const deleteService = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Invalid service ID" });
     }
 
-    const db = getDB();
+    const db = getDb();
 
     const result = await db.collection("services").deleteOne({ _id: new ObjectId(id as string) });
 
@@ -287,7 +287,7 @@ export const deleteService = async (req: Request, res: Response) => {
 // Create a new category
 export const createCategory = async (req: Request, res: Response) => {
   try {
-    const db = getDB();
+    const db = getDb();
     const { name, title, description, icon, status } = req.body;
 
     // Validate required fields
@@ -341,7 +341,7 @@ export const createCategory = async (req: Request, res: Response) => {
 // Get all categories
 export const getCategories = async (req: Request, res: Response) => {
   try {
-    const db = getDB();
+    const db = getDb();
     const { status } = req.query;
 
     // Build filter
@@ -383,7 +383,7 @@ export const updateCategory = async (req: Request, res: Response) => {
       });
     }
 
-    const db = getDB();
+    const db = getDb();
 
     // First check if category exists
     const existingCategory = await db.collection("service_categories").findOne({ id: id });
@@ -438,7 +438,7 @@ export const deleteCategory = async (req: Request, res: Response) => {
       });
     }
 
-    const db = getDB();
+    const db = getDb();
 
     const result = await db.collection("service_categories").deleteOne({ id: id });
 

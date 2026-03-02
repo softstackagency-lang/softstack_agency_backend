@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
-import { getDB } from "../../../config/db";
+import { getDb } from "../../../db";
 import { ObjectId } from "mongodb";
 import { HeroBanner } from "./banner.model";
 
 // Create a new banner
 export const createBanner = async (req: Request, res: Response) => {
     try {
-        const db = getDB();
+        const db = getDb();
 
         // Support both formats: direct fields or nested under heroBanner
         const data = req.body.heroBanner || req.body;
@@ -65,7 +65,7 @@ export const createBanner = async (req: Request, res: Response) => {
 // Get the active banner (public endpoint)
 export const getBanner = async (req: Request, res: Response) => {
     try {
-        const db = getDB();
+        const db = getDb();
 
         const banner = await db.collection("home_banners").findOne({ isActive: true });
 
@@ -92,7 +92,7 @@ export const getBanner = async (req: Request, res: Response) => {
 // Get all banners (admin only)
 export const getAllBanners = async (req: Request, res: Response) => {
     try {
-        const db = getDB();
+        const db = getDb();
         const { isActive, limit, skip } = req.query;
 
         // Build filter object
@@ -150,7 +150,7 @@ export const updateBanner = async (req: Request, res: Response) => {
             });
         }
 
-        const db = getDB();
+        const db = getDb();
 
         // First check if banner exists
         const existingBanner = await db.collection("home_banners").findOne({ _id: new ObjectId(id as string) });
@@ -212,7 +212,7 @@ export const deleteBanner = async (req: Request, res: Response) => {
             });
         }
 
-        const db = getDB();
+        const db = getDb();
 
         const result = await db.collection("home_banners").deleteOne({ _id: new ObjectId(id as string) });
 

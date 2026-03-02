@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import { getDB } from "../config/db";
+import { getDb } from "../db";
 
 export const getDashboardStats = async (req: Request, res: Response) => {
   try {
-    const db = getDB();
+    const db = getDb();
     const ordersCol = db.collection("orders");
     const usersCol = db.collection("users");
     const productsCol = db.collection("products");

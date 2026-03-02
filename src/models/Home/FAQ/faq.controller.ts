@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
-import { getDB } from "../../../config/db";
+import { getDb } from "../../../db";
 import { ObjectId } from "mongodb";
 import { FAQ } from "./faq.model";
 
 // Create a new FAQ
 export const createFAQ = async (req: Request, res: Response) => {
     try {
-        const db = getDB();
+        const db = getDb();
 
         const {
             question,
@@ -51,7 +51,7 @@ export const createFAQ = async (req: Request, res: Response) => {
 // Get all FAQs (public endpoint)
 export const getAllFAQs = async (req: Request, res: Response) => {
     try {
-        const db = getDB();
+        const db = getDb();
         const { isActive, limit, skip } = req.query;
 
         // Build filter object
@@ -93,7 +93,7 @@ export const getAllFAQs = async (req: Request, res: Response) => {
 // Get active FAQs (public endpoint)
 export const getActiveFAQs = async (req: Request, res: Response) => {
     try {
-        const db = getDB();
+        const db = getDb();
         const { limit } = req.query;
 
         let query = db.collection("faqs")
@@ -130,7 +130,7 @@ export const getFAQById = async (req: Request, res: Response) => {
             });
         }
 
-        const db = getDB();
+        const db = getDb();
 
         const faq = await db.collection("faqs").findOne({ _id: new ObjectId(id as string) });
 
@@ -174,7 +174,7 @@ export const updateFAQ = async (req: Request, res: Response) => {
             });
         }
 
-        const db = getDB();
+        const db = getDb();
 
         // First check if FAQ exists
         const existingFAQ = await db.collection("faqs").findOne({ _id: new ObjectId(id as string) });
@@ -228,7 +228,7 @@ export const deleteFAQ = async (req: Request, res: Response) => {
             });
         }
 
-        const db = getDB();
+        const db = getDb();
 
         const result = await db.collection("faqs").deleteOne({ _id: new ObjectId(id as string) });
 
@@ -265,7 +265,7 @@ export const reorderFAQs = async (req: Request, res: Response) => {
             });
         }
 
-        const db = getDB();
+        const db = getDb();
         const bulkOps = faqs.map((faq: { _id: string; order: number }) => ({
             updateOne: {
                 filter: { _id: new ObjectId(faq._id) },

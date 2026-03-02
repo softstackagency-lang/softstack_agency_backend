@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
-import { getDB } from "../../config/db";
+import { getDb } from "../../db";
 import { ObjectId } from "mongodb";
 
 
 // Get all users
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
-    const db = getDB();
+    const db = getDb();
     const users = await db.collection("users").find().toArray();
 
     console.log('📊 getAllUsers found', users.length, 'users');
@@ -34,7 +34,7 @@ export const getUserById = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Invalid user ID" });
     }
 
-    const db = getDB();
+    const db = getDb();
 
     // Try to find by _id first (MongoDB primary key)
     let user = null;
@@ -99,7 +99,7 @@ export const updateUser = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Invalid user ID" });
     }
 
-    const db = getDB();
+    const db = getDb();
 
     // Find user by _id first, then firebaseUid
     let user = null;
@@ -161,7 +161,7 @@ export const deleteUser = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Invalid user ID" });
     }
 
-    const db = getDB();
+    const db = getDb();
 
     // Find user by _id first, then firebaseUid
     let user = null;
@@ -213,7 +213,7 @@ export const updateUserStatus = async (req: Request, res: Response) => {
       });
     }
 
-    const db = getDB();
+    const db = getDb();
 
     // Check if user exists - try _id first, then firebaseUid for backward compatibility
     let existingUser = null;
@@ -261,7 +261,7 @@ export const updateUserStatus = async (req: Request, res: Response) => {
 // Get all users with their status (Admin only)
 export const getAllUsersWithStatus = async (req: Request, res: Response) => {
   try {
-    const db = getDB();
+    const db = getDb();
 
     // Get query parameters for filtering
     const { status, role } = req.query;
@@ -326,7 +326,7 @@ export const getUserStatus = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Invalid user ID" });
     }
 
-    const db = getDB();
+    const db = getDb();
 
     // Try _id first, then firebaseUid for backward compatibility
     let user = null;
@@ -377,7 +377,7 @@ export const getUserStatus = async (req: Request, res: Response) => {
 // Get all users with their roles (Admin only)
 export const getAllUsersWithRole = async (req: Request, res: Response) => {
   try {
-    const db = getDB();
+    const db = getDb();
 
     // Get query parameters for filtering
     const { role, status } = req.query;
@@ -434,7 +434,7 @@ export const getUserRole = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Invalid user ID" });
     }
 
-    const db = getDB();
+    const db = getDb();
 
     // Try _id first, then firebaseUid for backward compatibility
     let user = null;
@@ -496,7 +496,7 @@ export const updateUserRole = async (req: Request, res: Response) => {
       });
     }
 
-    const db = getDB();
+    const db = getDb();
 
     // Check if user exists - try _id first, then firebaseUid for backward compatibility
     let existingUser = null;

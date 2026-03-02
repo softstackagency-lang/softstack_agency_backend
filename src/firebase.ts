@@ -1,151 +1,58 @@
 import admin from 'firebase-admin'
 import { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
-import { validateFirebaseServiceAccount, FirebaseValidationError } from './utils/validateFirebase'
 import * as fs from 'fs'
 import * as path from 'path'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret'
-if (!process.env.JWT_SECRET) {
-  // eslint-disable-next-line no-console
-  console.warn('Warning: using default JWT_SECRET. Set JWT_SECRET in production.')
-}
 
-// Initialize Firebase Admin with validation
+// Initialize Firebase Admin
 if (!admin.apps.length) {
   try {
-    let serviceAccount: any;
-
-    // Check if we're in production (Vercel) or development
-    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-      // Production: Use environment variable
-      try {
-        const rawContent = process.env.FIREBASE_SERVICE_ACCOUNT;
-        serviceAccount = JSON.parse(rawContent);
-
-        // Fix for common Vercel/environment variable issue: \n being escaped as \\n
-        if (serviceAccount.private_key && typeof serviceAccount.private_key === 'string') {
-          serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
-        }
-      } catch (error) {
-        console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT:', error);
-        throw new FirebaseValidationError(
-          'Failed to parse FIREBASE_SERVICE_ACCOUNT environment variable. Must be valid JSON. ' +
-          'Check for hidden characters or formatting issues.'
-        )
-      }
-    } else {
-      // Development: Use local JSON file
-      const serviceAccountPath = path.join(__dirname, 'config', 'firebase-service-account.json')
-
-      if (!fs.existsSync(serviceAccountPath)) {
-        throw new FirebaseValidationError(
-          `Firebase service account file not found at: ${serviceAccountPath}\n` +
-          'Please download the service account JSON from Firebase Console.'
-        )
-      }
-
-      try {
-        const fileContent = fs.readFileSync(serviceAccountPath, 'utf-8')
-        serviceAccount = JSON.parse(fileContent)
-      } catch (error) {
-        throw new FirebaseValidationError(
-          `Failed to read or parse firebase-service-account.json: ${error instanceof Error ? error.message : 'Unknown error'}`
-        )
-      }
+    const serviceAccountPath = path.join(__dirname, 'config', 'firebase-service-account.json')
+    if (fs.existsSync(serviceAccountPath)) {
+      const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf-8'))
+      admin.initializeApp({ credential: admin.credential.cert(serviceAccount) })
     }
-
-    // Validate the service account structure and content
-    validateFirebaseServiceAccount(serviceAccount)
-
-    // Initialize Firebase Admin
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-    })
-
-    console.log(`✓ Firebase Admin initialized successfully for project: ${serviceAccount.project_id}`)
   } catch (error) {
-    console.error('❌ Firebase Initialization Failed:', error instanceof Error ? error.message : 'Unknown error');
-    // In serverless, we don't want to crash the whole node process on import
-    // But we should allow the error to propagates if it's during actual app startup
-    if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
-      throw error;
-    }
+    console.error('Firebase init failed:', error)
   }
 }
 
-/**
- * Lazy-loaded Proxy for Firebase Auth.
- * This prevents the application from crashing during module import if Firebase is not yet initialized.
- */
-export const auth = new Proxy({} as admin.auth.Auth, {
-  get(target, prop) {
-    if (!admin.apps.length) {
-      throw new Error('Firebase Admin not initialized. Check FIREBASE_SERVICE_ACCOUNT environment variable.')
-    }
-    const service = admin.auth()
-    const value = (service as any)[prop]
-    return typeof value === 'function' ? value.bind(service) : value
-  }
-})
-
-/**
- * Lazy-loaded Proxy for Firebase Firestore.
- */
-export const firestore = new Proxy({} as admin.firestore.Firestore, {
-  get(target, prop) {
-    if (!admin.apps.length) {
-      throw new Error('Firebase Admin not initialized. Check FIREBASE_SERVICE_ACCOUNT environment variable.')
-    }
-    const service = admin.firestore()
-    const value = (service as any)[prop]
-    return typeof value === 'function' ? value.bind(service) : value
-  }
-})
+export const auth = admin.auth()
+export const firestore = admin.firestore()
 
 export function signSessionToken(uid: string) {
   return jwt.sign({ uid }, JWT_SECRET, { expiresIn: '7d' })
 }
 
-// Middleware to verify Firebase ID Token sent in Authorization: Bearer <token>
 export async function verifyIdTokenMiddleware(req: Request, res: Response, next: NextFunction) {
-  const authHeader = req.headers.authorization || ''
+  const authHeader = req.headers.authorization
+  if (!authHeader) return next()
+
   const match = authHeader.match(/Bearer\s+(.*)/i)
-
-  if (!match) {
-    console.log('No Bearer token found in Authorization header');
-    return next();
-  }
-
-  const idToken = match[1]
-  console.log('Verifying Firebase ID token...');
+  if (!match) return next()
 
   try {
-    const decoded = await auth.verifyIdToken(idToken, true)
-    console.log('✅ Token verified successfully:', { uid: decoded.uid, email: decoded.email });
-    ; (req as any).firebaseUser = decoded
-    return next()
+    const decoded = await auth.verifyIdToken(match[1])
+    ;(req as any).firebaseUser = decoded
+    next()
   } catch (err: any) {
-    console.error('❌ Token verification failed:', err.code, err.message);
-    if (err && (err.code === 'auth/id-token-revoked' || err.code === 'auth/token-revoked')) {
-      return res.status(401).json({ error: 'Token revoked. Please reauthenticate.' })
-    }
-    return res.status(401).json({ error: 'Invalid or expired token' })
+    res.status(401).json({ error: 'Invalid token' })
   }
 }
 
-// Cookie auth middleware: verifies `session` cookie JWT and attaches `req.sessionUser`
 export function cookieAuthMiddleware(req: Request, _res: Response, next: NextFunction) {
-  const token = (req as any).cookies && (req as any).cookies.session
+  const token = (req as any).cookies?.session
   if (!token) return next()
+
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as any
-      ; (req as any).sessionUser = { uid: decoded.uid }
-    return next()
+    ;(req as any).sessionUser = { uid: decoded.uid }
   } catch (err) {
-    ; (req as any).sessionUser = undefined
-    return next()
+    ;(req as any).sessionUser = undefined
   }
+  next()
 }
 
 export default admin

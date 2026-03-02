@@ -1,11 +1,11 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import { connectDB, closeDB } from '../../../config/db';
+import { connectDb, closeDb } from '../../../config/db';
 
 const seedBanner = async () => {
     try {
-        const db = await connectDB();
+        const db = await connectDb();
         console.log('Connected to database');
 
         // Deactivate all existing banners
@@ -71,7 +71,7 @@ const seedBanner = async () => {
         console.log('✅ Banner seeded successfully!');
         console.log('Inserted ID:', result.insertedId);
 
-        await closeDB();
+        await closeDb();
         process.exit(0);
     } catch (error) {
         console.error('❌ Error seeding banner:', error);

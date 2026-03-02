@@ -7,16 +7,9 @@
     "npm": ">=9.0.0"
   },
   "scripts": {
-    "preinstall": "node check-versions.js",
-    "predev": "node check-versions.js",
-    "prebuild": "node check-versions.js",
-    "prestart": "node check-versions.js",
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "tsc -p tsconfig.json",
-    "start": "node dist/index.js",
-    "check": "npx ts-node check-setup.ts",
-    "check-versions": "node check-versions.js",
-    "setup": "npm install && npx ts-node check-setup.ts"
+    "start": "node dist/index.js"
   },
   "dependencies": {
     "@types/mongodb": "^4.0.6",

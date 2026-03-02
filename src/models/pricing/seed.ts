@@ -1,4 +1,4 @@
-import { connectDB } from "../../config/db";
+import { connectDb } from "../../db";
 
 const samplePricingData = {
   "id": "ai-agent",
@@ -88,7 +88,7 @@ const samplePricingData = {
 
 export const seedPricingData = async () => {
   try {
-    const db = await connectDB();
+    const db = await connectDb();
 
     // Insert sample pricing category with plans
     const existingCategory = await db.collection("pricingCategories").findOne({ id: samplePricingData.id });

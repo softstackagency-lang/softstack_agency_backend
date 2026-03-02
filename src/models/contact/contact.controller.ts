@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
-import { getDB } from "../../config/db";
+import { getDb } from "../../db";
 import { ObjectId } from "mongodb";
 import { Contact } from "./contact.model";
 
 // Submit a contact form (public endpoint)
 export const createContact = async (req: Request, res: Response) => {
     try {
-        const db = getDB();
+        const db = getDb();
         const { name, email, phone, subject, message } = req.body;
 
         // Validate required fields
@@ -64,7 +64,7 @@ export const createContact = async (req: Request, res: Response) => {
 // Get all contacts with filtering and pagination (admin only)
 export const getAllContacts = async (req: Request, res: Response) => {
     try {
-        const db = getDB();
+        const db = getDb();
         const {
             status,
             startDate,
@@ -141,7 +141,7 @@ export const getAllContacts = async (req: Request, res: Response) => {
 // Get a single contact by ID (admin only)
 export const getContactById = async (req: Request, res: Response) => {
     try {
-        const db = getDB();
+        const db = getDb();
         const { id } = req.params;
         const contactId = id as string;
 
@@ -192,7 +192,7 @@ export const getContactById = async (req: Request, res: Response) => {
 // Update contact status (admin only)
 export const updateContactStatus = async (req: Request, res: Response) => {
     try {
-        const db = getDB();
+        const db = getDb();
         const { id } = req.params;
         const contactId = id as string;
         const { status } = req.body;
@@ -253,7 +253,7 @@ export const updateContactStatus = async (req: Request, res: Response) => {
 // Delete a contact (admin only)
 export const deleteContact = async (req: Request, res: Response) => {
     try {
-        const db = getDB();
+        const db = getDb();
         const { id } = req.params;
         const contactId = id as string;
 
@@ -289,7 +289,7 @@ export const deleteContact = async (req: Request, res: Response) => {
 // Delete multiple contacts (admin only)
 export const deleteMultipleContacts = async (req: Request, res: Response) => {
     try {
-        const db = getDB();
+        const db = getDb();
         const { ids } = req.body;
 
         if (!ids || !Array.isArray(ids) || ids.length === 0) {
@@ -329,7 +329,7 @@ export const deleteMultipleContacts = async (req: Request, res: Response) => {
 // Get contact statistics (admin only)
 export const getContactStats = async (req: Request, res: Response) => {
     try {
-        const db = getDB();
+        const db = getDb();
 
         const totalContacts = await db.collection("contacts").countDocuments();
         const newContacts = await db.collection("contacts").countDocuments({ status: "new" });

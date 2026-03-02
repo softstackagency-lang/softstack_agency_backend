@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { getDB } from "../config/db";
+import { getDb } from "../db";
 import { ObjectId } from "mongodb";
 
 // Extend Express Request type to include firebaseUser and sessionUser
@@ -26,7 +26,7 @@ function getUser(req: Request): any {
 // Fetch user role from database
 async function getUserRole(userId: string): Promise<string | null> {
   try {
-    const db = getDB();
+    const db = getDb();
     let user = null;
 
     // Try _id first, then firebaseUid

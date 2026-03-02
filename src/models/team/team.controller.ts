@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import { ObjectId } from "mongodb";
-import { connectDB } from "../../config/db";
+import { connectDb } from "../../db";
 import { TeamMember, Department, TeamFilters } from "./team.model";
 
 // Helper function to ensure id is a string
@@ -17,7 +17,7 @@ export const createTeamMember = async (req: Request, res: Response) => {
     teamMemberData.createdAt = new Date();
     teamMemberData.updatedAt = new Date();
 
-    const db = await connectDB();
+    const db = await connectDb();
     const result = await db.collection("teamMembers").insertOne(teamMemberData);
 
     res.status(201).json({
@@ -58,7 +58,7 @@ export const getAllTeamMembers = async (req: Request, res: Response) => {
       filters.skills = { $in: skillsArray };
     }
 
-    const db = await connectDB();
+    const db = await connectDb();
     const skip = (Number(page) - 1) * Number(limit);
 
     const sortOptions: any = {};
@@ -97,7 +97,7 @@ export const getAllTeamMembers = async (req: Request, res: Response) => {
 export const getTeamMemberById = async (req: Request, res: Response) => {
   try {
     const id = getIdAsString(req.params.id);
-    const db = await connectDB();
+    const db = await connectDb();
 
     // Try to find by custom id first, then by _id
     let teamMember = await db.collection("teamMembers").findOne({ id });
@@ -132,7 +132,7 @@ export const getTeamMembersByDepartment = async (req: Request, res: Response) =>
     const department = getIdAsString(req.params.department);
     const { status } = req.query; // Remove default value
 
-    const db = await connectDB();
+    const db = await connectDb();
 
     // Build filter object conditionally
     const filter: any = {
@@ -175,7 +175,7 @@ export const updateTeamMember = async (req: Request, res: Response) => {
     // Remove _id from update data if present
     delete updateData._id;
 
-    const db = await connectDB();
+    const db = await connectDb();
 
     // Try to update by custom id first, then by _id
     let result = await db.collection("teamMembers").updateOne(
@@ -214,7 +214,7 @@ export const updateTeamMember = async (req: Request, res: Response) => {
 export const deleteTeamMember = async (req: Request, res: Response) => {
   try {
     const id = getIdAsString(req.params.id);
-    const db = await connectDB();
+    const db = await connectDb();
 
     // Try to delete by custom id first, then by _id
     let result = await db.collection("teamMembers").deleteOne({ id });
@@ -263,7 +263,7 @@ export const createDepartment = async (req: Request, res: Response) => {
       updatedAt: new Date()
     };
 
-    const db = await connectDB();
+    const db = await connectDb();
 
     // Check if department already exists
     const existingDept = await db.collection("departments").findOne({
@@ -297,7 +297,7 @@ export const createDepartment = async (req: Request, res: Response) => {
 export const deleteDepartment = async (req: Request, res: Response) => {
   try {
     const departmentName = getIdAsString(req.params.name);
-    const db = await connectDB();
+    const db = await connectDb();
 
     // Check if any team members are assigned to this department
     const teamMembersCount = await db.collection("teamMembers").countDocuments({
@@ -340,7 +340,7 @@ export const deleteDepartment = async (req: Request, res: Response) => {
 // Get all departments (from departments collection)
 export const getDepartments = async (req: Request, res: Response) => {
   try {
-    const db = await connectDB();
+    const db = await connectDb();
 
     // Get all departments from the departments collection
     const departments = await db

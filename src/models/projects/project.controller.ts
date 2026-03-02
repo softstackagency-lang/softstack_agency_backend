@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import { ObjectId } from "mongodb";
-import { connectDB } from "../../config/db";
+import { connectDb } from "../../db";
 import { Project, ProjectInput, ProjectCategory, ProjectCategoryInput, ProjectFilters } from "./project.model";
 
 // Helper function to ensure id is a string
@@ -26,7 +26,7 @@ export const createProjectCategory = async (req: Request, res: Response) => {
       projects: [] // Initialize empty projects array
     };
 
-    const db = await connectDB();
+    const db = await connectDb();
 
     // Check if category with same id already exists
     if (categoryToInsert.id) {
@@ -67,7 +67,7 @@ export const getAllProjectCategories = async (req: Request, res: Response) => {
     const filters: any = {};
     if (isActive !== undefined) filters.isActive = isActive === 'true';
 
-    const db = await connectDB();
+    const db = await connectDb();
 
     const sortOptions: any = {};
     sortOptions[sortBy as string] = sortOrder === 'desc' ? -1 : 1;
@@ -97,7 +97,7 @@ export const getAllProjectCategories = async (req: Request, res: Response) => {
 export const getProjectCategoryById = async (req: Request, res: Response) => {
   try {
     const id = getIdAsString(req.params.id);
-    const db = await connectDB();
+    const db = await connectDb();
 
     // Try to find by custom id first, then by _id
     let category = await db.collection("projectCategories").findOne({ id });
@@ -135,7 +135,7 @@ export const updateProjectCategory = async (req: Request, res: Response) => {
     // Add updated timestamp
     updateData.updatedAt = new Date();
 
-    const db = await connectDB();
+    const db = await connectDb();
 
     // Try to find by custom id first, then by _id
     let query: any = { id };
@@ -201,7 +201,7 @@ export const updateProjectCategory = async (req: Request, res: Response) => {
 export const deleteProjectCategory = async (req: Request, res: Response) => {
   try {
     const id = getIdAsString(req.params.id);
-    const db = await connectDB();
+    const db = await connectDb();
 
     // Try to find by custom id first, then by _id
     let query: any = { id };
@@ -253,7 +253,7 @@ export const addProjectToCategory = async (req: Request, res: Response) => {
       tags: projectData.tags || []
     };
 
-    const db = await connectDB();
+    const db = await connectDb();
 
     // Find the category
     let category = await db.collection("projectCategories").findOne({ id: categoryId });
@@ -307,7 +307,7 @@ export const updateProjectInCategory = async (req: Request, res: Response) => {
     const projectId = getIdAsString(req.params.projectId);
     const updateData = req.body;
 
-    const db = await connectDB();
+    const db = await connectDb();
 
     // Find the category
     let category = await db.collection("projectCategories").findOne({ id: categoryId });
@@ -364,7 +364,7 @@ export const removeProjectFromCategory = async (req: Request, res: Response) => 
     const categoryId = getIdAsString(req.params.categoryId);
     const projectId = getIdAsString(req.params.projectId);
 
-    const db = await connectDB();
+    const db = await connectDb();
 
     // Find the category
     let category = await db.collection("projectCategories").findOne({ id: categoryId });
