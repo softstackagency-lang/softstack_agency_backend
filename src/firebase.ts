@@ -9,10 +9,24 @@ const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret'
 // Initialize Firebase Admin
 if (!admin.apps.length) {
   try {
-    const serviceAccountPath = path.join(__dirname, 'config', 'firebase-service-account.json')
-    if (fs.existsSync(serviceAccountPath)) {
-      const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf-8'))
+    let serviceAccount;
+
+    // Try environment variable first (for Vercel deployment)
+    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+      serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    } else {
+      // Fallback to local file (for development)
+      const serviceAccountPath = path.join(__dirname, 'config', 'firebase-service-account.json')
+      if (fs.existsSync(serviceAccountPath)) {
+        serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf-8'))
+      }
+    }
+
+    if (serviceAccount) {
       admin.initializeApp({ credential: admin.credential.cert(serviceAccount) })
+      console.log('Firebase initialized successfully')
+    } else {
+      console.warn('No Firebase credentials found')
     }
   } catch (error) {
     console.error('Firebase init failed:', error)
