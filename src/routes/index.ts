@@ -16,6 +16,7 @@ import teamRoutes from '../models/team/team.routes';
 import userManagementRoutes from '../models/user/user.routes';
 import orderRoutes from '../models/order/order.routes';
 import contactRoutes from '../models/contact/contact.routes';
+import blogRoutes from '../models/blog/blog.routes';
 
 // Home module routes
 import bannerRoutes from '../models/Home/Banner/banner.routes';
@@ -53,4 +54,7 @@ export const registerRoutes = (app: Express) => {
 
   // Contact
   app.use('/api/contact', contactRoutes);
+
+  // Blogs
+  app.use('/api/blogs', blogRoutes);
 };
